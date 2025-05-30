@@ -1,0 +1,546 @@
+&lt;!DOCTYPE html&gt;
+ &lt;html lang=&quot;zh-CN&quot;&gt;
+ &lt;head&gt;
+     &lt;meta charset=&quot;UTF-8&quot;&gt;
+     &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot;&gt;
+     &lt;title&gt;美记&lt;/title&gt;
+     &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+     &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+     &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+     &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+     &lt;link rel=&quot;manifest&quot; href=&quot;manifest.json&quot;&gt;
+     &lt;style&gt;
+         body {
+             font-family: &#39;Inter&#39;, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;;
+             overscroll-behavior-y: contain;
+         }
+         .ios-scrollbar::-webkit-scrollbar { display: none; }
+         .ios-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+         .nav-item.active { color: #2563eb; /* blue-600 */ }
+         .nav-item.active svg { stroke: #2563eb; /* blue-600 */ }
+         .transaction-item:last-child { border-bottom: none; }
+         .form-input {
+             border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.75rem 1rem; width: 100%;
+             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+         }
+         .form-input:focus {
+             border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); outline: none;
+         }
+         .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.75rem; }
+         .category-button {
+             display: flex; flex-direction: column; align-items: center; justify-content: center;
+             padding: 0.75rem 0.5rem; border: 1px solid #E5E7EB; border-radius: 0.5rem; /* rounded-lg */
+             cursor: pointer; transition: all 0.2s ease-in-out; background-color: white;
+             text-align: center; height: 80px;
+         }
+         .category-button.selected {
+             border-width: 2px;
+             /* Tailwind blue-500 for border, blue-50 for background */
+             border-color: #3b82f6; 
+             background-color: #eff6ff; 
+         }
+         .category-button svg { 
+            width: 1.75rem; height: 1.75rem; /* w-7 h-7 */
+            margin-bottom: 0.25rem; /* mb-1 */
+            /* Default icon color, will be overridden by category.textColor if selected */
+         }
+         .category-button.selected svg {
+            /* Icon color will be set by JS using computed style from span for consistency */
+         }
+         .category-button span { 
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500;
+            /* Default text color, will be overridden by category.textColor */
+         }
+         .category-button.selected span {
+            /* text color will be set by JS using category.textColor */
+            font-weight: 600;
+         }
+         .type-toggle button {
+     flex-grow: 1; padding: 0.75rem; border: 1px solid #D1D5DB;
+     color: #374151; font-weight: 500; transition: all 0.2s ease-in-out;
+ }
+ .type-toggle button.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+ .type-toggle button:first-child { border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
+ .type-toggle button:last-child { border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border-left-width: 0; }
+ input\[type="date"\] { position: relative; min-height: 3rem; }
+ input\[type="date"\]::-webkit-calendar-picker-indicator {
+     position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+     opacity: 0.6; cursor: pointer; width: 1.5rem; height: 1.5rem;
+ }
+ #search-input {
+     width: 100%; padding: 0.625rem 1rem; border: 1px solid #E5E7EB;
+     border-radius: 0.5rem; font-size: 0.9375rem; outline: none;
+     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+ }
+ #search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+ #author-name { cursor: pointer; text-decoration: underline; color: #2563eb; }
+ 
+ #stats-chart-container {
+    width: 100%;
+    max-width: 280px; /* Max width for the chart, adjusted for mobile */
+    margin: 1rem auto; /* Center the chart & add margin */
+    position: relative; /* For centering text inside donut */
+ }
+ #expense-chart {
+    display: block; /* Remove extra space below canvas */
+ }
+ #chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 0.75rem; /* text-xs */
+    color: #4b5563; /* gray-600 */
+ }
+ #chart-center-text strong {
+    display: block;
+    font-size: 1rem; /* text-base */
+    font-weight: 600; /* font-semibold */
+    color: #1f2937; /* gray-800 */
+ }
+
+ #stats-legend {
+    margin-top: 1.5rem; /* space between chart and legend */
+    padding: 0 0.5rem; /* Add some padding to legend container */
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem; /* space between legend items, around 10px */
+ }
+ .legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem; /* text-sm */
+ }
+ .legend-color-box {
+    width: 0.875rem; /* w-3.5 */
+    height: 0.875rem; /* h-3.5 */
+    margin-right: 0.625rem; /* mr-2.5 */
+    border-radius: 0.125rem; /* rounded-sm */
+    border: 1px solid rgba(0,0,0,0.1); /* Slight border for light colors */
+ }
+ .legend-text {
+     flex-grow: 1;
+     color: #374151; /* gray-700 */
+ }
+ .legend-amount {
+    color: #4b5563; /* gray-600 */
+    font-weight: 500;
+    margin-left: 0.5rem;
+ }
+ .legend-percentage {
+    min-width: 45px; /* Ensure alignment */
+    text-align: right;
+    color: #1f2937; /* gray-800 */
+    font-weight: 500;
+ }
+ \</head\>
+\<body class="bg-gray-100"\>
+
+<div id="app-container" class="max-w-md mx-auto h-screen flex flex-col shadow-xl overflow-hidden">
+<header id="main-header" class="bg-white/80 backdrop-blur-md shadow-sm p-4 sticky top-0 z-30 flex items-center justify-center">
+<h1 class="text-xl font-bold text-gray-800">美记</h1>
+</header>
+
+ <main id="page-content" class="flex-grow overflow-y-auto ios-scrollbar">
+     <div id="transactions-page" class="p-4 space-y-4">
+         <div class="bg-white p-5 rounded-xl shadow-lg">
+             <div class="grid grid-cols-3 gap-2 text-center">
+                 <div><p class="text-xs text-gray-500 mb-1">本月收入</p><p id="summary-income" class="text-lg font-semibold text-green-600">¥0.00</p></div>
+                 <div><p class="text-xs text-gray-500 mb-1">本月支出</p><p id="summary-expense" class="text-lg font-semibold text-red-600">¥0.00</p></div>
+                 <div><p class="text-xs text-gray-500 mb-1">结余</p><p id="summary-balance" class="text-lg font-semibold text-gray-800">¥0.00</p></div>
+             </div>
+         </div>
+
+         <div class="py-1">
+            <button id="page-add-transaction-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center text-base">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                记一笔
+            </button>
+        </div>
+
+         <div class="bg-white rounded-xl shadow">
+             <div id="search-container" class="p-3 border-b border-gray-200">
+                 <input type="text" id="search-input" placeholder="搜索备注...">
+             </div>
+             <h2 class="text-md font-semibold text-gray-700 px-4 pt-4 pb-2 border-b border-gray-200">交易记录</h2>
+             <div id="transactions-list" class="divide-y divide-gray-200">
+                 <p id="no-transactions" class="p-6 text-center text-gray-500">暂无记录，点击上方按钮记一笔吧！</p>
+             </div>
+         </div>
+     </div>
+
+     <div id="stats-page" class="hidden p-4 space-y-4">
+         <div class="bg-white p-5 rounded-xl shadow-lg">
+             <h2 class="text-md font-semibold text-gray-700 mb-4 text-center">本月支出分类统计</h2>
+             <div id="stats-chart-container">
+                <canvas id="expense-chart"></canvas> <div id="chart-center-text" class="hidden">
+                    <span class="text-xs">总支出</span>
+                    <strong id="chart-total-expense">¥0.00</strong>
+                </div>
+             </div>
+             <div id="stats-legend">
+                </div>
+             <p id="no-stats" class="py-4 text-center text-gray-500 hidden">本月暂无支出数据</p>
+         </div>
+     </div>
+
+     <div id="profile-page" class="hidden p-4 space-y-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24 mx-auto text-yellow-400 mb-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75s.168-.75.375-.75S9.75 9.336 9.75 9.75zm4.5 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75z" />
+            </svg>
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">关于美记</h2>
+            <p class="text-gray-500 text-sm mb-4">简洁易用的生活记账App。</p>
+             <div class="text-sm text-gray-600 space-y-1 mb-6">
+<p>作者：<span id="author-name">老罗爱吃薯条</span></p>
+<p>版本：1.0.4</p>
+</div>
+<button id="clear-data-button" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">清除所有数据</button>
+<p class="text-xs text-gray-400 mt-2">注意：此操作无法撤销。</p>
+</div>
+</div>
+</main>
+
+ <nav id="bottom-nav" class="bg-white/80 backdrop-blur-md border-t border-gray-200 p-1 flex justify-around items-center sticky bottom-0 z-30">
+     <button id="nav-transactions" class="nav-item flex-1 flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors active"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mb-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg><span class="text-xs">明细</span></button>
+     <button id="nav-stats" class="nav-item flex-1 flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mb-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg><span class="text-xs">统计</span></button>
+     <button id="nav-search" class="nav-item flex-1 flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mb-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg><span class="text-xs">搜索</span></button>
+     <button id="nav-profile" class="nav-item flex-1 flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mb-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span class="text-xs">我的</span></button>
+ </nav>
+</div>
+
+<div id="add-transaction-modal" class="hidden fixed inset-0 bg-gray-100 z-40 flex flex-col max-w-md mx-auto h-screen shadow-xl">
+<header class="bg-white/80 backdrop-blur-md shadow-sm p-4 flex items-center sticky top-0"><button id="back-to-main" class="p-2 -ml-2 text-blue-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg></button><h2 class="text-lg font-semibold text-gray-800 flex-grow text-center -ml-6">记一笔</h2><button id="save-transaction" class="text-blue-600 font-semibold p-2">保存</button></header>
+<main class="flex-grow overflow-y-auto p-5 space-y-5 ios-scrollbar">
+<div class="type-toggle flex"><button id="type-expense" data-type="expense" class="active">支出</button><button id="type-income" data-type="income">收入</button></div>
+<div><label for="amount" class="block text-sm font-medium text-gray-700 mb-1">金额 (¥)</label><input type="number" id="amount" name="amount" class="form-input text-2xl font-semibold" placeholder="0.00" step="0.01"></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">分类</label><div id="category-selector" class="category-grid"></div><input type="hidden" id="selected-category" name="selected-category"></div>
+<div><label for="date" class="block text-sm font-medium text-gray-700 mb-1">日期</label><input type="date" id="date" name="date" class="form-input"></div>
+<div><label for="notes" class="block text-sm font-medium text-gray-700 mb-1">备注 (可选)</label><textarea id="notes" name="notes" rows="3" class="form-input" placeholder="点击填写备注..."></textarea></div>
+</main>
+</div>
+
+<script>
+let transactions = JSON.parse(localStorage.getItem('mjer_transactions')) || [];
+let currentView = 'transactions';
+let transactionType = 'expense';
+let selectedCategoryValue = '';
+let searchTerm = '';
+// let expenseChartInstance = null; // No longer using Chart.js instance like this
+
+ const categories = [
+     { id: 'food', name: '餐饮', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>', color: '#ef4444', textColorHex: '#b91c1c' }, // Red-700
+     { id: 'transport', name: '交通', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" /></svg>', color: '#f97316', textColorHex: '#c2410c' }, // Orange-700
+     { id: 'entertainment', name: '娱乐', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-1.5h5.25m-5.25 0h3m-3 0h-1.5m0 0H3m9 0H9m12 0H9m0 0H3m0 0h.008v.007H3V12m0 0h3.75m0 0h5.25m0 0h5.25M3.75 6H20.25M3.75 18H20.25" /></svg>', color: '#84cc16', textColorHex: '#4d7c0f' }, // Lime-700
+     { id: 'shopping', name: '购物', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>', color: '#0ea5e9', textColorHex: '#0369a1' }, // Sky-600
+     { id: 'health', name: '医疗', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>', color: '#e11d48', textColorHex: '#be123c' }, // Rose-700
+     { id: 'education', name: '教育', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>', color: '#4f46e5', textColorHex: '#3730a3' }, // Indigo-700
+     { id: 'salary', name: '工资', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.75A.75.75 0 013 4.5h.75m0 0H21m-12 6h9m-9 3h9m-9 3h9M3.75 6.75h16.5M3.75 9.75h16.5m0 0A2.25 2.25 0 0121 12v6.75c0 .621-.504 1.125-1.125 1.125H5.25A2.25 2.25 0 013 18.75V12a2.25 2.25 0 012.25-2.25h.094c1.536 0 2.87 1.06 3.28 2.563M13.5 6H5.25A2.25 2.25 0 003 8.25v3.75c0 .621.504 1.125 1.125 1.125h1.5c.621 0 1.125-.504 1.125-1.125V8.25A2.25 2.25 0 005.25 6H3" /></svg>', color: '#10b981', textColorHex: '#047857' }, // Emerald-600 (Income)
+     { id: 'investment', name: '投资', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>', color: '#06b6d4', textColorHex: '#0891b2' }, // Cyan-600 (Income)
+     { id: 'gift', name: '礼金', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.75 0 9-3.25 9-7.5s-4.25-7.5-9-7.5S3 9 3 13.25c0 4.25 4.25 7.5 9 7.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>', color: '#d946ef', textColorHex: '#a21caf' }, // Fuchsia-600
+     { id: 'other', name: '其他', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>', color: '#64748b', textColorHex: '#475569' }  // Slate-600
+ ];
+
+ const DOM = {
+     transactionsPage: document.getElementById('transactions-page'),
+     statsPage: document.getElementById('stats-page'),
+     profilePage: document.getElementById('profile-page'),
+     addTransactionModal: document.getElementById('add-transaction-modal'),
+     nav: {
+         transactions: document.getElementById('nav-transactions'),
+         stats: document.getElementById('nav-stats'),
+         search: document.getElementById('nav-search'),
+         profile: document.getElementById('nav-profile')
+     },
+     pageAddTransactionBtn: document.getElementById('page-add-transaction-button'),
+     backToMainBtn: document.getElementById('back-to-main'),
+     saveTransactionBtn: document.getElementById('save-transaction'),
+     clearDataBtn: document.getElementById('clear-data-button'),
+     authorNameEl: document.getElementById('author-name'),
+     transactionsList: document.getElementById('transactions-list'),
+     noTransactions: document.getElementById('no-transactions'),
+     summary: {
+         income: document.getElementById('summary-income'),
+         expense: document.getElementById('summary-expense'),
+         balance: document.getElementById('summary-balance')
+     },
+     searchInput: document.getElementById('search-input'),
+     expenseChartCanvas: document.getElementById('expense-chart'), 
+     chartCenterText: document.getElementById('chart-center-text'),
+     chartTotalExpense: document.getElementById('chart-total-expense'),
+     statsLegend: document.getElementById('stats-legend'), 
+     noStats: document.getElementById('no-stats'),
+     form: {
+         typeExpense: document.getElementById('type-expense'),
+         typeIncome: document.getElementById('type-income'),
+         amount: document.getElementById('amount'),
+         categorySelector: document.getElementById('category-selector'),
+         selectedCategory: document.getElementById('selected-category'),
+         date: document.getElementById('date'),
+         notes: document.getElementById('notes')
+     }
+ };
+
+ const formatDate = (ds) => { const d = new Date(ds); return `${('0'+(d.getMonth()+1)).slice(-2)}-${('0'+d.getDate()).slice(-2)}`; };
+ const formatFullDate = (ds) => { const d = new Date(ds); return `${d.getFullYear()}-${('0'+(d.getMonth()+1)).slice(-2)}-${('0'+d.getDate()).slice(-2)}`; };
+ const getCategoryById = (id) => categories.find(c => c.id === id) || { name: '未知', icon: categories.find(c=>c.id==='other').icon, color: '#64748b', textColorHex: '#475569' };
+
+ const renderTransactions = () => {
+     DOM.transactionsList.innerHTML = '';
+     const filtered = transactions.filter(tx => !searchTerm || (tx.notes && tx.notes.toLowerCase().includes(searchTerm.toLowerCase())));
+     if (filtered.length === 0) {
+         DOM.noTransactions.textContent = searchTerm ? '没有找到匹配的记录' : '暂无记录，点击上方按钮记一笔吧！';
+         DOM.noTransactions.classList.remove('hidden'); return;
+     }
+     DOM.noTransactions.classList.add('hidden');
+     [...filtered].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(tx => {
+         const cat = getCategoryById(tx.category);
+         const item = document.createElement('div');
+         item.className = 'transaction-item flex items-center p-4 hover:bg-gray-50 transition-colors';
+         const sign = tx.type === 'income' ? '+' : '-';
+         item.innerHTML = `
+             <div class="mr-3 p-2 bg-gray-100 rounded-full text-gray-600">${cat.icon.replace('w-7 h-7', 'w-5 h-5')}</div>
+             <div class="flex-grow"><p class="font-medium text-gray-800">${cat.name}</p><p class="text-xs text-gray-500">${tx.notes||'没有备注'}</p></div>
+             <div class="text-right"><p class="font-semibold ${tx.type==='income'?'text-green-600':'text-red-600'}">${sign}¥${parseFloat(tx.amount).toFixed(2)}</p><p class="text-xs text-gray-400">${formatDate(tx.date)}</p></div>`;
+         DOM.transactionsList.appendChild(item);
+     });
+ };
+
+ const renderSummary = () => {
+     const curM = new Date().getFullYear()+'-'+('0'+(new Date().getMonth()+1)).slice(-2);
+     const monthTx = transactions.filter(tx => tx.date.startsWith(curM));
+     let inc = 0, exp = 0;
+     monthTx.forEach(tx => tx.type === 'income' ? inc += parseFloat(tx.amount) : exp += parseFloat(tx.amount));
+     DOM.summary.income.textContent = `¥${inc.toFixed(2)}`;
+     DOM.summary.expense.textContent = `¥${exp.toFixed(2)}`;
+     DOM.summary.balance.textContent = `¥${(inc - exp).toFixed(2)}`;
+ };
+
+ const renderCategoryStats = () => {
+     const canvas = DOM.expenseChartCanvas;
+     const legendContainer = DOM.statsLegend;
+     const noStatsMessage = DOM.noStats;
+     const chartCenterTextEl = DOM.chartCenterText;
+     const chartTotalExpenseEl = DOM.chartTotalExpense;
+
+     // Set canvas dimensions based on its container for responsiveness
+     const container = document.getElementById('stats-chart-container');
+     canvas.width = container.clientWidth;
+     canvas.height = container.clientWidth; // Keep it square for a circle
+
+     const ctx = canvas.getContext('2d');
+
+     legendContainer.innerHTML = ''; 
+
+     const today = new Date();
+     const currentMonth = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2);
+     const monthlyExpenses = transactions.filter(tx => tx.type === 'expense' && tx.date.startsWith(currentMonth));
+
+     if (monthlyExpenses.length === 0) {
+         noStatsMessage.classList.remove('hidden');
+         canvas.classList.add('hidden');
+         chartCenterTextEl.classList.add('hidden');
+         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear if no data
+         return;
+     }
+     noStatsMessage.classList.add('hidden');
+     canvas.classList.remove('hidden');
+     chartCenterTextEl.classList.remove('hidden');
+
+     const expenseByCategory = {};
+     let totalExpense = 0;
+
+     monthlyExpenses.forEach(tx => {
+         const category = getCategoryById(tx.category);
+         if (!expenseByCategory[category.id]) {
+             expenseByCategory[category.id] = { name: category.name, value: 0, color: category.color };
+         }
+         expenseByCategory[category.id].value += parseFloat(tx.amount);
+         totalExpense += parseFloat(tx.amount);
+     });
+     
+     chartTotalExpenseEl.textContent = `¥${totalExpense.toFixed(2)}`;
+
+     const chartData = Object.values(expenseByCategory).filter(cat => cat.value > 0);
+     chartData.sort((a,b) => b.value - a.value); 
+
+     const centerX = canvas.width / 2;
+     const centerY = canvas.height / 2;
+     const outerRadius = Math.min(centerX, centerY) * 0.9; 
+     const innerRadius = outerRadius * 0.55; 
+     let startAngle = -0.5 * Math.PI; 
+
+     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+     chartData.forEach(categoryData => {
+         const sliceAngle = (categoryData.value / totalExpense) * 2 * Math.PI;
+         const endAngle = startAngle + sliceAngle;
+
+         ctx.beginPath();
+         ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+         ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true); 
+         ctx.closePath();
+         ctx.fillStyle = categoryData.color;
+         ctx.fill();
+
+         const legendItem = document.createElement('div');
+         legendItem.className = 'legend-item';
+         const percentage = ((categoryData.value / totalExpense) * 100).toFixed(1);
+         legendItem.innerHTML = `
+             <div class="legend-color-box" style="background-color: ${categoryData.color};"></div>
+             <span class="legend-text">${categoryData.name}</span>
+             <span class="legend-percentage">${percentage}%</span>
+             <span class="legend-amount">¥${categoryData.value.toFixed(2)}</span>
+         `;
+         legendContainer.appendChild(legendItem);
+
+         startAngle = endAngle;
+     });
+ };
+
+ const renderCategoriesForSelection = () => {
+     DOM.form.categorySelector.innerHTML = '';
+     categories.forEach(cat => {
+         const btn = document.createElement('button'); btn.type='button'; btn.className='category-button'; btn.dataset.categoryId=cat.id;
+         const iconContainer = document.createElement('div'); iconContainer.innerHTML = cat.icon; // Parse SVG string
+         const svgEl = iconContainer.firstChild;
+         const spanEl = document.createElement('span'); spanEl.textContent = cat.name;
+         
+         spanEl.style.color = cat.textColorHex;
+         if (svgEl && svgEl.tagName === 'svg') {
+            svgEl.style.stroke = cat.textColorHex; 
+         }
+
+         btn.appendChild(svgEl);
+         btn.appendChild(spanEl);
+
+         btn.addEventListener('click', () => {
+             document.querySelectorAll('#category-selector .category-button').forEach(b => {
+                b.classList.remove('selected');
+                const s = b.querySelector('span');
+                const i = b.querySelector('svg');
+                const originalCatId = b.dataset.categoryId;
+                const originalCat = getCategoryById(originalCatId);
+                if (s) s.style.color = originalCat.textColorHex; 
+                if (i) i.style.stroke = originalCat.textColorHex; 
+             });
+             btn.classList.add('selected');
+             // Selected state color is handled by .selected CSS for border and background
+             // Text and icon color remain as set by category.textColorHex
+             selectedCategoryValue = cat.id; DOM.form.selectedCategory.value = cat.id;
+         });
+         DOM.form.categorySelector.appendChild(btn);
+     });
+ };
+
+ const showPage = (pageId) => {
+     [DOM.transactionsPage, DOM.statsPage, DOM.profilePage].forEach(p => p.classList.add('hidden'));
+     [DOM.nav.transactions, DOM.nav.stats, DOM.nav.search, DOM.nav.profile].forEach(b => b.classList.remove('active'));
+     currentView = pageId;
+     if (pageId === 'transactions') {
+         DOM.transactionsPage.classList.remove('hidden'); DOM.nav.transactions.classList.add('active');
+         renderTransactions(); renderSummary();
+     } else if (pageId === 'stats') {
+         DOM.statsPage.classList.remove('hidden'); DOM.nav.stats.classList.add('active');
+         renderCategoryStats(); 
+     } else if (pageId === 'search') { 
+         DOM.transactionsPage.classList.remove('hidden'); DOM.nav.search.classList.add('active'); 
+         renderTransactions(); renderSummary();
+         DOM.searchInput.focus(); 
+         DOM.searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+     } else if (pageId === 'profile') {
+         DOM.profilePage.classList.remove('hidden'); DOM.nav.profile.classList.add('active');
+     }
+ };
+ 
+ const openAddTransactionModal = () => {
+     transactionType = 'expense'; DOM.form.typeExpense.classList.add('active'); DOM.form.typeIncome.classList.remove('active');
+     DOM.form.amount.value = ''; DOM.form.notes.value = ''; DOM.form.date.value = formatFullDate(new Date().toISOString());
+     selectedCategoryValue = ''; DOM.form.selectedCategory.value = '';
+     document.querySelectorAll('#category-selector .category-button').forEach(b => { // Reset all buttons first
+        b.classList.remove('selected');
+        const originalCatId = b.dataset.categoryId;
+        const originalCat = getCategoryById(originalCatId);
+        const s = b.querySelector('span'); const i = b.querySelector('svg');
+        if (s) s.style.color = originalCat.textColorHex; 
+        if (i) i.style.stroke = originalCat.textColorHex; 
+     });
+     const firstCatBtn = DOM.form.categorySelector.querySelector('.category-button'); 
+     if(firstCatBtn) { // Then click the first one to select it
+        firstCatBtn.click(); 
+     }
+     DOM.addTransactionModal.classList.remove('hidden');
+ };
+
+ const closeAddTransactionModal = () => DOM.addTransactionModal.classList.add('hidden');
+ const showTemporaryMessage = (message, duration = 3000) => {
+     const appContainer = document.getElementById('app-container');
+     const msgDiv = document.createElement('div');
+     msgDiv.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-2 px-4 rounded-lg shadow-lg z-50';
+     msgDiv.textContent = message; appContainer.appendChild(msgDiv);
+     setTimeout(() => { if(appContainer.contains(msgDiv)) appContainer.removeChild(msgDiv); }, duration);
+ };
+ const handleClearData = () => {
+     const appContainer = document.getElementById('app-container');
+     const confDialog = document.createElement('div');
+     confDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+     confDialog.innerHTML = `
+         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+             <h3 class="text-lg font-semibold mb-3 text-gray-800">确认操作</h3><p class="text-sm text-gray-600 mb-4">您确定要清除所有记账数据吗？此操作无法撤销。</p>
+             <div class="flex justify-end space-x-3"><button id="conf-cancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">取消</button><button id="conf-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-md">确认清除</button></div></div>`;
+     appContainer.appendChild(confDialog);
+     document.getElementById('conf-cancel').addEventListener('click', () => appContainer.removeChild(confDialog));
+     document.getElementById('conf-delete').addEventListener('click', () => {
+         transactions = []; localStorage.removeItem('mjer_transactions');
+         renderTransactions(); renderSummary(); renderCategoryStats();
+         appContainer.removeChild(confDialog); showTemporaryMessage("所有数据已清除。");
+     });
+ };
+
+ DOM.nav.transactions.addEventListener('click', () => showPage('transactions'));
+ DOM.nav.stats.addEventListener('click', () => showPage('stats'));
+ DOM.nav.search.addEventListener('click', () => showPage('search'));
+ DOM.nav.profile.addEventListener('click', () => showPage('profile'));
+ DOM.pageAddTransactionBtn.addEventListener('click', openAddTransactionModal);
+ DOM.backToMainBtn.addEventListener('click', closeAddTransactionModal);
+ DOM.form.typeExpense.addEventListener('click', ()=>{transactionType='expense';DOM.form.typeExpense.classList.add('active');DOM.form.typeIncome.classList.remove('active');});
+ DOM.form.typeIncome.addEventListener('click', ()=>{transactionType='income';DOM.form.typeIncome.classList.add('active');DOM.form.typeExpense.classList.remove('active');});
+ DOM.saveTransactionBtn.addEventListener('click', () => {
+     const amt=parseFloat(DOM.form.amount.value), cat=selectedCategoryValue, dt=DOM.form.date.value, nts=DOM.form.notes.value.trim();
+     if(isNaN(amt)||amt<=0){showTemporaryMessage('请输入有效的金额');DOM.form.amount.focus();return;}
+     if(!cat){showTemporaryMessage('请选择一个分类');return;} if(!dt){showTemporaryMessage('请选择日期');DOM.form.date.focus();return;}
+     transactions.push({id:Date.now().toString(),type:transactionType,amount:amt,category:cat,date:dt,notes:nts});
+     localStorage.setItem('mjer_transactions', JSON.stringify(transactions));
+     closeAddTransactionModal(); 
+     if(currentView !== 'stats') { // If not on stats page, render it in background so data is fresh if user navigates there
+        renderCategoryStats(); // Update chart data even if not visible
+     }
+     showPage(currentView); // This will re-render the current view (including stats if currentView is 'stats')
+     if(currentView==='transactions'||currentView==='search')renderSummary(); 
+     showTemporaryMessage("保存成功！");
+ });
+ DOM.searchInput.addEventListener('input', (e) => {searchTerm=e.target.value; if(currentView==='transactions'||currentView==='search')renderTransactions();});
+ DOM.clearDataBtn.addEventListener('click', handleClearData);
+ if(DOM.authorNameEl) DOM.authorNameEl.addEventListener('click', () => showTemporaryMessage('联系邮箱: 2281846183@qq.com'));
+
+ const initializeApp = () => {
+     renderCategoriesForSelection(); DOM.form.date.value = formatFullDate(new Date().toISOString());
+     showPage('transactions');
+     renderCategoryStats(); // Initial render of chart data in case user goes there first
+     if ('serviceWorker' in navigator) {
+         window.addEventListener('load', () => {
+             navigator.serviceWorker.register('./service-worker.js') // Ensure correct path
+                 .then(reg => console.log('美记 ServiceWorker registered.', reg.scope))
+                 .catch(err => console.log('美记 ServiceWorker registration failed:', err));
+         });
+     }
+ };
+ initializeApp();
+</script>
+
+
+\</body\>
+\</html\>

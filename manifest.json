@@ -1,0 +1,24 @@
+{
+ &quot;name&quot;: &quot;美记&quot;,
+ &quot;short_name&quot;: &quot;美记&quot;,
+ &quot;description&quot;: &quot;一款精美的手机记账App&quot;,
+ &quot;start_url&quot;: &quot;./index.html&quot;,
+ &quot;display&quot;: &quot;standalone&quot;,
+ &quot;orientation&quot;: &quot;portrait&quot;,
+ &quot;background_color&quot;: &quot;#f3f4f6&quot;,
+ &quot;theme_color&quot;: &quot;#ffffff&quot;,
+ &quot;icons&quot;: [
+   {
+     &quot;src&quot;: &quot;./icons/icon-192.png&quot;,  代替 &quot;https://placehold.co/192x192/2563eb/FFFFFF?text=MJ&amp;font=inter&quot;
+     &quot;sizes&quot;: &quot;192x192&quot;,
+     &quot;type&quot;: &quot;image/png&quot;,
+     &quot;purpose&quot;: &quot;any maskable&quot;
+   },
+   {
+     &quot;src&quot;: &quot;./icons/icon-512.png&quot;,  代替 &quot;https://placehold.co/512x512/2563eb/FFFFFF?text=MJ&amp;font=inter&quot;
+     &quot;sizes&quot;: &quot;512x512&quot;,
+     &quot;type&quot;: &quot;image/png&quot;,
+     &quot;purpose&quot;: &quot;any maskable&quot;
+   }
+ ]
+}
