@@ -35,25 +35,18 @@
          }
          .category-button.selected {
              border-width: 2px;
-             /* Tailwind blue-500 for border, blue-50 for background */
              border-color: #3b82f6; 
              background-color: #eff6ff; 
          }
          .category-button svg { 
             width: 1.75rem; height: 1.75rem; /* w-7 h-7 */
             margin-bottom: 0.25rem; /* mb-1 */
-            /* Default icon color, will be overridden by category.textColor if selected */
-         }
-         .category-button.selected svg {
-            /* Keep icon color consistent or use category.textColor if desired */
          }
          .category-button span { 
             font-size: 0.875rem; /* text-sm */
             font-weight: 500;
-            /* Default text color, will be overridden by category.textColor */
          }
          .category-button.selected span {
-            /* text color will be set by JS using category.textColor */
             font-weight: 600;
          }
 
@@ -78,27 +71,64 @@
          #search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
          #author-name { cursor: pointer; text-decoration: underline; color: #2563eb; }
          
-         #stats-chart-container {
+         .stats-chart-container { /* Common class for both chart containers */
             width: 100%;
-            max-width: 300px; /* Max width for the chart */
-            margin: 0 auto; /* Center the chart */
+            max-width: 280px; 
+            margin: 1rem auto; 
+            position: relative; 
          }
-         #stats-legend {
-            margin-top: 1rem; /* space between chart and legend */
+         .expense-chart, .income-chart { /* Specific classes for canvas */
+            display: block; 
+         }
+         .chart-center-text { /* Common class for center text */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 0.75rem; 
+            color: #4b5563; 
+         }
+         .chart-center-text strong {
+            display: block;
+            font-size: 1rem; 
+            font-weight: 600; 
+            color: #1f2937; 
+         }
+
+         .stats-legend { /* Common class for both legends */
+            margin-top: 1.5rem; 
+            padding: 0 0.5rem; 
             display: flex;
             flex-direction: column;
-            gap: 0.5rem; /* space between legend items */
+            gap: 0.625rem; 
          }
          .legend-item {
             display: flex;
             align-items: center;
-            font-size: 0.875rem; /* text-sm */
+            font-size: 0.875rem; 
          }
          .legend-color-box {
-            width: 0.875rem; /* w-3.5 */
-            height: 0.875rem; /* h-3.5 */
-            margin-right: 0.5rem; /* mr-2 */
-            border-radius: 0.125rem; /* rounded-sm */
+            width: 0.875rem; 
+            height: 0.875rem; 
+            margin-right: 0.625rem; 
+            border-radius: 0.125rem; 
+            border: 1px solid rgba(0,0,0,0.1); 
+         }
+         .legend-text {
+             flex-grow: 1;
+             color: #374151; 
+         }
+         .legend-amount {
+            color: #4b5563; 
+            font-weight: 500;
+            margin-left: 0.5rem;
+         }
+         .legend-percentage {
+            min-width: 45px; 
+            text-align: right;
+            color: #1f2937; 
+            font-weight: 500;
          }
      </style>
  </head>
@@ -137,15 +167,32 @@
                  </div>
              </div>
  
-             <div id="stats-page" class="hidden p-4 space-y-4">
-                 <div class="bg-white p-5 rounded-xl shadow-lg">
-                     <h2 class="text-md font-semibold text-gray-700 mb-3 text-center">本月支出分类统计</h2>
-                     <div id="stats-chart-container">
-                        <canvas id="expense-chart" width="300" height="300"></canvas>
-                     </div>
-                     <div id="stats-legend">
+             <div id="stats-page" class="hidden p-4 space-y-6"> <div class="bg-white p-5 rounded-xl shadow-lg">
+                     <h2 class="text-md font-semibold text-gray-700 mb-4 text-center">本月支出分类统计</h2>
+                     <div class="stats-chart-container">
+                        <canvas id="expense-chart" class="expense-chart"></canvas>
+                        <div id="expense-chart-center-text" class="chart-center-text hidden">
+                            <span class="text-xs">总支出</span>
+                            <strong id="expense-chart-total">¥0.00</strong>
                         </div>
-                     <p id="no-stats" class="py-4 text-center text-gray-500 hidden">本月暂无支出数据</p>
+                     </div>
+                     <div id="expense-stats-legend" class="stats-legend">
+                        </div>
+                     <p id="no-expense-stats" class="py-4 text-center text-gray-500 hidden">本月暂无支出数据</p>
+                 </div>
+
+                 <div class="bg-white p-5 rounded-xl shadow-lg">
+                     <h2 class="text-md font-semibold text-gray-700 mb-4 text-center">本月收入分类统计</h2>
+                     <div class="stats-chart-container">
+                        <canvas id="income-chart" class="income-chart"></canvas>
+                        <div id="income-chart-center-text" class="chart-center-text hidden">
+                            <span class="text-xs">总收入</span>
+                            <strong id="income-chart-total">¥0.00</strong>
+                        </div>
+                     </div>
+                     <div id="income-stats-legend" class="stats-legend">
+                        </div>
+                     <p id="no-income-stats" class="py-4 text-center text-gray-500 hidden">本月暂无收入数据</p>
                  </div>
              </div>
 
@@ -158,7 +205,7 @@
                     <p class="text-gray-500 text-sm mb-4">简洁易用的生活记账App。</p>
                     <div class="text-sm text-gray-600 space-y-1 mb-6">
                         <p>作者：<span id="author-name">老罗爱吃薯条</span></p>
-                        <p>版本：1.0.4</p>
+                        <p>版本：1.0.5</p>
                     </div>
                     <button id="clear-data-button" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">清除所有数据</button>
                     <p class="text-xs text-gray-400 mt-2">注意：此操作无法撤销。</p>
@@ -191,23 +238,21 @@
          let transactionType = 'expense';
          let selectedCategoryValue = '';
          let searchTerm = '';
-         let expenseChartInstance = null; // To store the chart instance
  
-         const categories = [
-             // Tailwind Colors: Red, Orange, Amber, Yellow, Lime, Green, Emerald, Teal, Cyan, Sky, Blue, Indigo, Violet, Purple, Fuchsia, Pink, Rose
-             { id: 'food', name: '餐饮', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>', color: '#ef4444', textColor: 'text-red-600' }, // Red-500
-             { id: 'transport', name: '交通', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" /></svg>', color: '#f97316', textColor: 'text-orange-600' }, // Orange-500
-             { id: 'entertainment', name: '娱乐', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-1.5h5.25m-5.25 0h3m-3 0h-1.5m0 0H3m9 0H9m12 0H9m0 0H3m0 0h.008v.007H3V12m0 0h3.75m0 0h5.25m0 0h5.25M3.75 6H20.25M3.75 18H20.25" /></svg>', color: '#84cc16', textColor: 'text-lime-600' }, // Lime-500
-             { id: 'shopping', name: '购物', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>', color: '#0ea5e9', textColor: 'text-sky-600' }, // Sky-500
-             { id: 'health', name: '医疗', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>', color: '#e11d48', textColor: 'text-rose-600' }, // Rose-600
-             { id: 'education', name: '教育', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>', color: '#4f46e5', textColor: 'text-indigo-600' }, // Indigo-600
-             { id: 'salary', name: '工资', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.75A.75.75 0 013 4.5h.75m0 0H21m-12 6h9m-9 3h9m-9 3h9M3.75 6.75h16.5M3.75 9.75h16.5m0 0A2.25 2.25 0 0121 12v6.75c0 .621-.504 1.125-1.125 1.125H5.25A2.25 2.25 0 013 18.75V12a2.25 2.25 0 012.25-2.25h.094c1.536 0 2.87 1.06 3.28 2.563M13.5 6H5.25A2.25 2.25 0 003 8.25v3.75c0 .621.504 1.125 1.125 1.125h1.5c.621 0 1.125-.504 1.125-1.125V8.25A2.25 2.25 0 005.25 6H3" /></svg>', color: '#10b981', textColor: 'text-emerald-600' }, // Emerald-500 (Income category, color might be used differently)
-             { id: 'investment', name: '投资', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>', color: '#06b6d4', textColor: 'text-cyan-600' }, // Cyan-500 (Income category)
-             { id: 'gift', name: '礼金', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.75 0 9-3.25 9-7.5s-4.25-7.5-9-7.5S3 9 3 13.25c0 4.25 4.25 7.5 9 7.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>', color: '#d946ef', textColor: 'text-fuchsia-600' }, // Fuchsia-500
-             { id: 'other', name: '其他', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>', color: '#64748b', textColor: 'text-slate-600' }  // Slate-500
+         const categories = [ // textColorHex is used for text and icon stroke in category selection
+             { id: 'food', name: '餐饮', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>', color: '#ef4444', textColorHex: '#b91c1c' },
+             { id: 'transport', name: '交通', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" /></svg>', color: '#f97316', textColorHex: '#c2410c' },
+             { id: 'entertainment', name: '娱乐', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-1.5h5.25m-5.25 0h3m-3 0h-1.5m0 0H3m9 0H9m12 0H9m0 0H3m0 0h.008v.007H3V12m0 0h3.75m0 0h5.25m0 0h5.25M3.75 6H20.25M3.75 18H20.25" /></svg>', color: '#84cc16', textColorHex: '#4d7c0f' },
+             { id: 'shopping', name: '购物', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>', color: '#0ea5e9', textColorHex: '#0369a1' },
+             { id: 'health', name: '医疗', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>', color: '#e11d48', textColorHex: '#be123c' },
+             { id: 'education', name: '教育', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>', color: '#4f46e5', textColorHex: '#3730a3' },
+             { id: 'salary', name: '工资', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.75A.75.75 0 013 4.5h.75m0 0H21m-12 6h9m-9 3h9m-9 3h9M3.75 6.75h16.5M3.75 9.75h16.5m0 0A2.25 2.25 0 0121 12v6.75c0 .621-.504 1.125-1.125 1.125H5.25A2.25 2.25 0 013 18.75V12a2.25 2.25 0 012.25-2.25h.094c1.536 0 2.87 1.06 3.28 2.563M13.5 6H5.25A2.25 2.25 0 003 8.25v3.75c0 .621.504 1.125 1.125 1.125h1.5c.621 0 1.125-.504 1.125-1.125V8.25A2.25 2.25 0 005.25 6H3" /></svg>', color: '#10b981', textColorHex: '#047857' },
+             { id: 'investment', name: '投资', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>', color: '#06b6d4', textColorHex: '#0891b2' },
+             { id: 'gift', name: '礼金', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.75 0 9-3.25 9-7.5s-4.25-7.5-9-7.5S3 9 3 13.25c0 4.25 4.25 7.5 9 7.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>', color: '#d946ef', textColorHex: '#a21caf' },
+             { id: 'other', name: '其他', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>', color: '#64748b', textColorHex: '#475569' }
          ];
  
-         const DOM = { /* ... same as before ... */ 
+         const DOM = {
              transactionsPage: document.getElementById('transactions-page'),
              statsPage: document.getElementById('stats-page'),
              profilePage: document.getElementById('profile-page'),
@@ -231,10 +276,18 @@
                  balance: document.getElementById('summary-balance')
              },
              searchInput: document.getElementById('search-input'),
-             expenseChartCanvas: document.getElementById('expense-chart'), // New
-             statsLegend: document.getElementById('stats-legend'), // New
-             categoryStatsList: document.getElementById('category-stats-list'), // Will be replaced by chart
-             noStats: document.getElementById('no-stats'),
+             // Expense Chart Elements
+             expenseChartCanvas: document.getElementById('expense-chart'), 
+             expenseChartCenterText: document.getElementById('expense-chart-center-text'),
+             expenseChartTotal: document.getElementById('expense-chart-total'),
+             expenseStatsLegend: document.getElementById('expense-stats-legend'), 
+             noExpenseStats: document.getElementById('no-expense-stats'),
+             // Income Chart Elements
+             incomeChartCanvas: document.getElementById('income-chart'), 
+             incomeChartCenterText: document.getElementById('income-chart-center-text'),
+             incomeChartTotal: document.getElementById('income-chart-total'),
+             incomeStatsLegend: document.getElementById('income-stats-legend'), 
+             noIncomeStats: document.getElementById('no-income-stats'),
              form: {
                  typeExpense: document.getElementById('type-expense'),
                  typeIncome: document.getElementById('type-income'),
@@ -248,9 +301,9 @@
  
          const formatDate = (ds) => { const d = new Date(ds); return `${('0'+(d.getMonth()+1)).slice(-2)}-${('0'+d.getDate()).slice(-2)}`; };
          const formatFullDate = (ds) => { const d = new Date(ds); return `${d.getFullYear()}-${('0'+(d.getMonth()+1)).slice(-2)}-${('0'+d.getDate()).slice(-2)}`; };
-         const getCategoryById = (id) => categories.find(c => c.id === id) || { name: '未知', icon: categories.find(c=>c.id==='other').icon, color: '#64748b', textColor: 'text-slate-600' };
+         const getCategoryById = (id) => categories.find(c => c.id === id) || { name: '未知', icon: categories.find(c=>c.id==='other').icon, color: '#64748b', textColorHex: '#475569' };
  
-         const renderTransactions = () => { /* ... same as before ... */
+         const renderTransactions = () => { /* ... (保持不变) ... */
              DOM.transactionsList.innerHTML = '';
              const filtered = transactions.filter(tx => !searchTerm || (tx.notes && tx.notes.toLowerCase().includes(searchTerm.toLowerCase())));
              if (filtered.length === 0) {
@@ -271,7 +324,7 @@
              });
          };
  
-         const renderSummary = () => { /* ... same as before ... */
+         const renderSummary = () => { /* ... (保持不变) ... */
              const curM = new Date().getFullYear()+'-'+('0'+(new Date().getMonth()+1)).slice(-2);
              const monthTx = transactions.filter(tx => tx.date.startsWith(curM));
              let inc = 0, exp = 0;
@@ -280,135 +333,168 @@
              DOM.summary.expense.textContent = `¥${exp.toFixed(2)}`;
              DOM.summary.balance.textContent = `¥${(inc - exp).toFixed(2)}`;
          };
+
+        const animateDonutChart = (canvas, chartData, totalValue, chartType) => {
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const outerRadius = Math.min(centerX, centerY) * 0.9;
+            const innerRadius = outerRadius * 0.55;
+            
+            let currentAngle = -0.5 * Math.PI; // Start at the top
+            let animationFrameId;
+            let animationProgress = 0; // 0 to 1
+            const animationDuration = 600; // milliseconds
+            let startTime = null;
+
+            function drawFrame(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsedTime = timestamp - startTime;
+                animationProgress = Math.min(elapsedTime / animationDuration, 1);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let frameStartAngle = -0.5 * Math.PI;
+
+                chartData.forEach(categoryData => {
+                    const targetSliceAngle = (categoryData.value / totalValue) * 2 * Math.PI;
+                    const currentSliceAngle = targetSliceAngle * animationProgress; // Animate slice growth
+                    const frameEndAngle = frameStartAngle + currentSliceAngle;
+
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, outerRadius, frameStartAngle, frameEndAngle);
+                    ctx.arc(centerX, centerY, innerRadius, frameEndAngle, frameStartAngle, true);
+                    ctx.closePath();
+                    ctx.fillStyle = categoryData.color;
+                    ctx.fill();
+                    frameStartAngle = frameEndAngle;
+                });
+
+                if (animationProgress < 1) {
+                    animationFrameId = requestAnimationFrame(drawFrame);
+                }
+            }
+            // Cancel any previous animation frame before starting a new one
+            if (canvas.animationFrameId) {
+                cancelAnimationFrame(canvas.animationFrameId);
+            }
+            canvas.animationFrameId = requestAnimationFrame(drawFrame);
+        };
+
+
+        const renderCategoryChart = (type) => { // type can be 'expense' or 'income'
+            const canvas = (type === 'expense') ? DOM.expenseChartCanvas : DOM.incomeChartCanvas;
+            const legendContainer = (type === 'expense') ? DOM.expenseStatsLegend : DOM.incomeStatsLegend;
+            const noStatsMessage = (type === 'expense') ? DOM.noExpenseStats : DOM.noIncomeStats;
+            const chartCenterTextEl = (type === 'expense') ? DOM.expenseChartCenterText : DOM.incomeChartCenterText;
+            const chartTotalEl = (type === 'expense') ? DOM.expenseChartTotal : DOM.incomeChartTotal;
+
+            const container = canvas.parentElement; // Get the .stats-chart-container
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientWidth; 
+
+            legendContainer.innerHTML = ''; 
+
+            const today = new Date();
+            const currentMonth = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2);
+            const monthlyTransactions = transactions.filter(tx => tx.type === type && tx.date.startsWith(currentMonth));
+
+            if (monthlyTransactions.length === 0) {
+                noStatsMessage.classList.remove('hidden');
+                canvas.classList.add('hidden');
+                chartCenterTextEl.classList.add('hidden');
+                if (canvas.animationFrameId) cancelAnimationFrame(canvas.animationFrameId); // Stop animation if no data
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+            noStatsMessage.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            chartCenterTextEl.classList.remove('hidden');
+
+            const dataByCategory = {};
+            let totalValue = 0;
+
+            monthlyTransactions.forEach(tx => {
+                const category = getCategoryById(tx.category);
+                if (!dataByCategory[category.id]) {
+                    dataByCategory[category.id] = { name: category.name, value: 0, color: category.color };
+                }
+                dataByCategory[category.id].value += parseFloat(tx.amount);
+                totalValue += parseFloat(tx.amount);
+            });
+            
+            chartTotalEl.textContent = `¥${totalValue.toFixed(2)}`;
+
+            const chartData = Object.values(dataByCategory).filter(cat => cat.value > 0);
+            chartData.sort((a,b) => b.value - a.value); 
+            
+            // Call animation function
+            animateDonutChart(canvas, chartData, totalValue, type);
+
+            // Render legend (statically, after animation starts or finishes)
+            chartData.forEach(categoryData => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                const percentage = ((categoryData.value / totalValue) * 100).toFixed(1);
+                legendItem.innerHTML = `
+                    <div class="legend-color-box" style="background-color: ${categoryData.color};"></div>
+                    <span class="legend-text">${categoryData.name}</span>
+                    <span class="legend-percentage">${percentage}%</span>
+                    <span class="legend-amount">¥${categoryData.value.toFixed(2)}</span>
+                `;
+                legendContainer.appendChild(legendItem);
+            });
+        };
  
-         const renderCategoryStats = () => {
-             const canvas = DOM.expenseChartCanvas;
-             const legendContainer = DOM.statsLegend;
-             const noStatsMessage = DOM.noStats;
-             const ctx = canvas.getContext('2d');
- 
-             legendContainer.innerHTML = ''; // Clear previous legend
- 
-             const today = new Date();
-             const currentMonth = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2);
-             const monthlyExpenses = transactions.filter(tx => tx.type === 'expense' && tx.date.startsWith(currentMonth));
- 
-             if (monthlyExpenses.length === 0) {
-                 noStatsMessage.classList.remove('hidden');
-                 canvas.classList.add('hidden'); // Hide canvas if no data
-                 if(expenseChartInstance) { expenseChartInstance.destroy(); expenseChartInstance = null;} // Destroy old chart
-                 return;
-             }
-             noStatsMessage.classList.add('hidden');
-             canvas.classList.remove('hidden');
- 
-             const expenseByCategory = {};
-             let totalExpense = 0;
- 
-             monthlyExpenses.forEach(tx => {
-                 const category = getCategoryById(tx.category);
-                 if (!expenseByCategory[category.id]) {
-                     expenseByCategory[category.id] = { name: category.name, value: 0, color: category.color };
-                 }
-                 expenseByCategory[category.id].value += parseFloat(tx.amount);
-                 totalExpense += parseFloat(tx.amount);
-             });
- 
-             const chartData = Object.values(expenseByCategory).filter(cat => cat.value > 0);
-             chartData.sort((a,b) => b.value - a.value); // Sort by value descending
- 
-             // Simple Donut Chart Drawing
-             const centerX = canvas.width / 2;
-             const centerY = canvas.height / 2;
-             const radius = Math.min(centerX, centerY) * 0.8; // Outer radius
-             const innerRadius = radius * 0.5; // Inner radius for donut hole
-             let startAngle = -0.5 * Math.PI; // Start at the top
- 
-             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
- 
-             chartData.forEach(categoryData => {
-                 const sliceAngle = (categoryData.value / totalExpense) * 2 * Math.PI;
-                 const endAngle = startAngle + sliceAngle;
- 
-                 ctx.beginPath();
-                 ctx.moveTo(centerX, centerY); // For pie, or use arc for donut hole start
-                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                 ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true); // Inner arc for donut
-                 ctx.closePath();
-                 ctx.fillStyle = categoryData.color;
-                 ctx.fill();
- 
-                 // Legend Item
-                 const legendItem = document.createElement('div');
-                 legendItem.className = 'legend-item';
-                 const percentage = ((categoryData.value / totalExpense) * 100).toFixed(1);
-                 legendItem.innerHTML = `
-                     <div class="legend-color-box" style="background-color: ${categoryData.color};"></div>
-                     <span>${categoryData.name}: ¥${categoryData.value.toFixed(2)} (${percentage}%)</span>
-                 `;
-                 legendContainer.appendChild(legendItem);
- 
-                 startAngle = endAngle;
-             });
-         };
- 
-         const renderCategoriesForSelection = () => {
+         const renderCategoriesForSelection = () => { /* ... (保持不变, 确保textColorHex使用正确) ... */
              DOM.form.categorySelector.innerHTML = '';
              categories.forEach(cat => {
                  const btn = document.createElement('button'); btn.type='button'; btn.className='category-button'; btn.dataset.categoryId=cat.id;
-                 const iconEl = document.createElement('div'); iconEl.innerHTML = cat.icon;
+                 const iconContainer = document.createElement('div'); iconContainer.innerHTML = cat.icon; 
+                 const svgEl = iconContainer.firstChild;
                  const spanEl = document.createElement('span'); spanEl.textContent = cat.name;
                  
-                 // Apply text color to span and icon
-                 spanEl.style.color = cat.textColor.startsWith('text-') ? '' : cat.textColor; // Use direct color if not Tailwind class
-                 if (cat.textColor.startsWith('text-')) {
-                     spanEl.classList.add(...cat.textColor.split(' '));
+                 spanEl.style.color = cat.textColorHex;
+                 if (svgEl && svgEl.tagName === 'svg') {
+                    svgEl.style.stroke = cat.textColorHex; 
                  }
-                 // Also color the SVG icon itself
-                 const svgIcon = iconEl.querySelector('svg');
-                 if (svgIcon) {
-                    svgIcon.style.stroke = cat.textColor.startsWith('text-') ? '' : cat.textColor;
-                    if (cat.textColor.startsWith('text-')) {
-                        svgIcon.classList.add(...cat.textColor.split(' ')); // This might not work for SVG stroke directly, better to use style.stroke
-                        svgIcon.style.stroke = window.getComputedStyle(spanEl).color; // Get computed color from span
-                    } else {
-                        svgIcon.style.stroke = cat.textColor;
-                    }
-                 }
-
-
-                 btn.appendChild(iconEl.firstChild);
+ 
+                 btn.appendChild(svgEl);
                  btn.appendChild(spanEl);
-
+ 
                  btn.addEventListener('click', () => {
                      document.querySelectorAll('#category-selector .category-button').forEach(b => {
                         b.classList.remove('selected');
-                        // Reset non-selected button text and icon colors to default if needed
                         const s = b.querySelector('span');
                         const i = b.querySelector('svg');
-                        if (s) s.style.color = ''; // Reset to CSS default
-                        if (i) i.style.stroke = '#6B7280'; // Reset icon to default gray
+                        const originalCatId = b.dataset.categoryId;
+                        const originalCat = getCategoryById(originalCatId);
+                        if (s) s.style.color = originalCat.textColorHex; 
+                        if (i) i.style.stroke = originalCat.textColorHex; 
                      });
                      btn.classList.add('selected');
-                     spanEl.style.color = cat.textColor.startsWith('text-') ? window.getComputedStyle(spanEl).color : cat.textColor; // Ensure selected color is applied
-                     if (svgIcon) svgIcon.style.stroke = cat.textColor.startsWith('text-') ? window.getComputedStyle(spanEl).color : cat.textColor;
-
                      selectedCategoryValue = cat.id; DOM.form.selectedCategory.value = cat.id;
                  });
                  DOM.form.categorySelector.appendChild(btn);
              });
          };
  
-         const showPage = (pageId) => { /* ... same as before ... */
+         const showPage = (pageId) => {
              [DOM.transactionsPage, DOM.statsPage, DOM.profilePage].forEach(p => p.classList.add('hidden'));
              [DOM.nav.transactions, DOM.nav.stats, DOM.nav.search, DOM.nav.profile].forEach(b => b.classList.remove('active'));
              currentView = pageId;
+
+             // Cancel any ongoing chart animations when switching pages
+             if (DOM.expenseChartCanvas.animationFrameId) cancelAnimationFrame(DOM.expenseChartCanvas.animationFrameId);
+             if (DOM.incomeChartCanvas.animationFrameId) cancelAnimationFrame(DOM.incomeChartCanvas.animationFrameId);
+
              if (pageId === 'transactions') {
                  DOM.transactionsPage.classList.remove('hidden'); DOM.nav.transactions.classList.add('active');
                  renderTransactions(); renderSummary();
              } else if (pageId === 'stats') {
                  DOM.statsPage.classList.remove('hidden'); DOM.nav.stats.classList.add('active');
-                 renderCategoryStats(); // This will now render the chart
+                 renderCategoryChart('expense'); 
+                 renderCategoryChart('income');
              } else if (pageId === 'search') { 
                  DOM.transactionsPage.classList.remove('hidden'); DOM.nav.search.classList.add('active'); 
                  renderTransactions(); renderSummary();
@@ -419,31 +505,34 @@
              }
          };
          
-         const openAddTransactionModal = () => { /* ... same as before ... */
+         const openAddTransactionModal = () => { /* ... (保持不变) ... */
              transactionType = 'expense'; DOM.form.typeExpense.classList.add('active'); DOM.form.typeIncome.classList.remove('active');
              DOM.form.amount.value = ''; DOM.form.notes.value = ''; DOM.form.date.value = formatFullDate(new Date().toISOString());
              selectedCategoryValue = ''; DOM.form.selectedCategory.value = '';
-             document.querySelectorAll('#category-selector .category-button').forEach(b => {
+             document.querySelectorAll('#category-selector .category-button').forEach(b => { 
                 b.classList.remove('selected');
+                const originalCatId = b.dataset.categoryId;
+                const originalCat = getCategoryById(originalCatId);
                 const s = b.querySelector('span'); const i = b.querySelector('svg');
-                if(s) s.style.color = ''; if(i) i.style.stroke = '#6B7280'; // Reset to default
+                if (s) s.style.color = originalCat.textColorHex; 
+                if (i) i.style.stroke = originalCat.textColorHex; 
              });
              const firstCatBtn = DOM.form.categorySelector.querySelector('.category-button'); 
-             if(firstCatBtn) {
-                firstCatBtn.click(); // This will apply selected styles including color
+             if(firstCatBtn) { 
+                firstCatBtn.click(); 
              }
              DOM.addTransactionModal.classList.remove('hidden');
          };
  
          const closeAddTransactionModal = () => DOM.addTransactionModal.classList.add('hidden');
-         const showTemporaryMessage = (message, duration = 3000) => { /* ... same as before ... */
+         const showTemporaryMessage = (message, duration = 3000) => { /* ... (保持不变) ... */
              const appContainer = document.getElementById('app-container');
              const msgDiv = document.createElement('div');
              msgDiv.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-2 px-4 rounded-lg shadow-lg z-50';
              msgDiv.textContent = message; appContainer.appendChild(msgDiv);
              setTimeout(() => { if(appContainer.contains(msgDiv)) appContainer.removeChild(msgDiv); }, duration);
          };
-         const handleClearData = () => { /* ... same as before ... */
+         const handleClearData = () => { /* ... (保持不变) ... */
              const appContainer = document.getElementById('app-container');
              const confDialog = document.createElement('div');
              confDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
@@ -455,7 +544,8 @@
              document.getElementById('conf-cancel').addEventListener('click', () => appContainer.removeChild(confDialog));
              document.getElementById('conf-delete').addEventListener('click', () => {
                  transactions = []; localStorage.removeItem('mjer_transactions');
-                 renderTransactions(); renderSummary(); renderCategoryStats();
+                 renderTransactions(); renderSummary(); 
+                 renderCategoryChart('expense'); renderCategoryChart('income'); // Update charts after clearing data
                  appContainer.removeChild(confDialog); showTemporaryMessage("所有数据已清除。");
              });
          };
@@ -474,9 +564,16 @@
              if(!cat){showTemporaryMessage('请选择一个分类');return;} if(!dt){showTemporaryMessage('请选择日期');DOM.form.date.focus();return;}
              transactions.push({id:Date.now().toString(),type:transactionType,amount:amt,category:cat,date:dt,notes:nts});
              localStorage.setItem('mjer_transactions', JSON.stringify(transactions));
-             closeAddTransactionModal(); showPage(currentView);
+             closeAddTransactionModal(); 
+             
+             if(currentView === 'stats') { // If on stats page, re-render with animation
+                renderCategoryChart('expense');
+                renderCategoryChart('income');
+             } else { // If not on stats page, update data for next view but don't necessarily animate now
+                // Data for charts will be prepared when navigating to stats page
+             }
+             showPage(currentView); // Refresh current view content (transactions list, summary)
              if(currentView==='transactions'||currentView==='search')renderSummary(); 
-             if(currentView==='stats' || (currentView !== 'stats' && transactions.length > 0)) renderCategoryStats(); // Update chart even if not on stats page
              showTemporaryMessage("保存成功！");
          });
          DOM.searchInput.addEventListener('input', (e) => {searchTerm=e.target.value; if(currentView==='transactions'||currentView==='search')renderTransactions();});
@@ -486,9 +583,12 @@
          const initializeApp = () => {
              renderCategoriesForSelection(); DOM.form.date.value = formatFullDate(new Date().toISOString());
              showPage('transactions');
+             // Initial render for stats page can be deferred until user navigates there, or done here
+             // renderCategoryChart('expense'); 
+             // renderCategoryChart('income');
              if ('serviceWorker' in navigator) {
                  window.addEventListener('load', () => {
-                     navigator.serviceWorker.register('/service-worker.js')
+                     navigator.serviceWorker.register('./service-worker.js') 
                          .then(reg => console.log('美记 ServiceWorker registered.', reg.scope))
                          .catch(err => console.log('美记 ServiceWorker registration failed:', err));
                  });
